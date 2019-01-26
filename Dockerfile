@@ -26,14 +26,14 @@ RUN \
 	/tmp/unrar.tar.gz -C \
 	/tmp/unran-src --strip-components=1
 
-# build package
+# build and archive package
 RUN \
 	set -ex \
 	&& mkdir -p \
 		/build \
 	&& cd /tmp/unran-src \
 	&& make -f makefile \
-	&& install -v -m755 unrar /build/
+	&& tar -czvf /build/unrar.tar.gz unrar
 
 # copy files out to /mnt
 CMD ["cp", "-avr", "/build", "/mnt/"]
