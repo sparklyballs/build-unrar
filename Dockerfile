@@ -34,3 +34,6 @@ RUN \
 	&& cd /tmp/unran-src \
 	&& make -f makefile \
 	&& install -v -m755 unrar /build/
+
+# copy files out to /mnt
+CMD ["cp", "-avr", "/build", "/mnt/"]
