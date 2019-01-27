@@ -13,10 +13,10 @@ RUN \
 
 # get package version
 RUN \
-	UNRAR_RELEASE=`curl -s https://www.rarlab.com/rar_add.htm | \
+	UNRAR_RELEASE=$(curl -s https://www.rarlab.com/rar_add.htm | \
 		grep -Eo 'unrarsrc-.*.tar.gz' | \
 		cut -d'-' -f2-  | \
-		cut -d'.' -f1,2,3)` \
+		cut -d'.' -f1,2,3) \
 	&& echo "UNRAR_VERSION=${UNRAR_RELEASE}" > /tmp/version.txt
 
 # fetch source code
