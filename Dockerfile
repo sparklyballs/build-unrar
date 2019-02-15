@@ -1,27 +1,15 @@
-ARG DEBIAN_VERSION="stretch"
-FROM debian:$DEBIAN_VERSION as fetch-stage
+ARG ALPINE_VERSION="3.9"
+FROM alpine:$ALPINE_VERSION as fetch-stage
 
 ############## fetch stage ##############
 
-# environment settings
-ARG DEBIAN_FRONTEND="noninteractive"
-
 # install fetch packages
 RUN \
-	apt-get update \
-	&& apt-get install -y \
-	--no-install-recommends \
-		ca-certificates \
-		curl \
-	\
-# cleanup
-	\
-	&& rm -rf \
-		/tmp/* \
-		/var/lib/apt/lists/* \
-		/var/tmp/*
+	set -ex \
+	&& apk add --no-cache \
+		bash \
+		curl
 
-# set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # fetch source code
@@ -41,28 +29,16 @@ RUN \
 	/tmp/unrar-src --strip-components=1 \
 	&& echo "UNRAR_VERSION=${UNRAR_VERSION}" > /tmp/version.txt
 
-FROM debian:$DEBIAN_VERSION as build-stage
+FROM alpine:$ALPINE_VERSION as build-stage
 
 ############## build stage ##############
-
-# environment settings
-ARG DEBIAN_FRONTEND="noninteractive"
 
 # install build packages
 RUN \
 	set -ex \
-	&& apt-get update \
-	&& apt-get install -y \
-	--no-install-recommends \
+	&& apk add --no-cache \
 		g++ \
-		make \
-	\
-# cleanup
-	\
-	&& rm -rf \
-		/tmp/* \
-		/var/lib/apt/lists/* \
-		/var/tmp/*
+		make
 
 # copy artifacts from fetch stage
 COPY --from=fetch-stage /tmp/unrar-src /tmp/unrar-src
@@ -78,7 +54,7 @@ RUN \
 	&& make -f makefile
 
 
-FROM debian:$DEBIAN_VERSION
+FROM alpine:$ALPINE_VERSION
 
 ############## package stage ##############
 
@@ -89,13 +65,10 @@ COPY --from=fetch-stage /tmp/version.txt /tmp/version.txt
 # set workdir
 WORKDIR /tmp/unrar-src
 
-# set shell
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # archive package
 # hadolint ignore=SC1091
 RUN \
-	source /tmp/version.txt \
+	. /tmp/version.txt \
 	&& set -ex \
 	&& mkdir -p \
 		/build \
