@@ -66,6 +66,7 @@ COPY --from=fetch-stage /tmp/version.txt /tmp/version.txt
 WORKDIR /tmp/unrar-src
 
 # archive package
+# hadolint ignore=SC1091
 RUN \
 	. /tmp/version.txt \
 	&& set -ex \
