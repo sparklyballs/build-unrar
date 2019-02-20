@@ -8,7 +8,8 @@ RUN \
 	set -ex \
 	&& apk add --no-cache \
 		bash \
-		curl
+		curl \
+		grep
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -18,9 +19,7 @@ RUN \
 	&& mkdir -p \
 		/tmp/unrar-src \
 	&& UNRAR_VERSION=$(curl -s https://www.rarlab.com/rar_add.htm | \
-		grep -Eo 'unrarsrc-.*.tar.gz' | \
-		cut -d'-' -f2-  | \
-		cut -d'.' -f1,2,3) \
+		grep -Po '(?<=unrarsrc-)\d.\d.\d') \
 	&& curl -o \
 	/tmp/unrar.tar.gz -L \
 	"https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
