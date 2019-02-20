@@ -19,7 +19,7 @@ RUN \
 	&& mkdir -p \
 		/tmp/unrar-src \
 	&& UNRAR_VERSION=$(curl -s https://www.rarlab.com/rar_add.htm | \
-		grep -Po '(?<=unrarsrc-)\d.\d.\d') \
+		grep -Po '(?<=rar\/unrarsrc-)\d.\d.\d') \
 	&& curl -o \
 	/tmp/unrar.tar.gz -L \
 	"https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
