@@ -56,7 +56,7 @@ RUN \
 	set -ex \
 	&& mkdir -p \
 		/build \
-	&& make -f makefile
+	&& make LDFLAGS=-static -f makefile
 
 
 FROM alpine:$ALPINE_VERSION
