@@ -13,20 +13,26 @@ RUN \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# fetch source code
+# fetch version file
 RUN \
 	set -ex \
+	&& curl -o \
+	/tmp/version.txt -L \
+	"https://raw.githubusercontent.com/sparklyballs/versioning/master/version.txt"
+
+# fetch source code
+# hadolint ignore=SC1091
+RUN \
+	. /tmp/version.txt \
+	&& set -ex \
 	&& mkdir -p \
 		/tmp/unrar-src \
-	&& UNRAR_VERSION=$(curl -s https://www.rarlab.com/rar_add.htm | \
-		grep -Po '(?<=rar\/unrarsrc-)\d.\d.\d') \
 	&& curl -o \
 	/tmp/unrar.tar.gz -L \
-	"https://www.rarlab.com/rar/unrarsrc-${UNRAR_VERSION}.tar.gz" \
+	"https://www.rarlab.com/rar/unrarsrc-${UNRAR_RELEASE}.tar.gz" \
 	&& tar xf \
 	/tmp/unrar.tar.gz -C \
-	/tmp/unrar-src --strip-components=1 \
-	&& echo "UNRAR_VERSION=${UNRAR_VERSION}" > /tmp/version.txt
+	/tmp/unrar-src --strip-components=1
 
 FROM alpine:$ALPINE_VERSION as build-stage
 
@@ -71,8 +77,8 @@ RUN \
 	&& set -ex \
 	&& mkdir -p \
 		/build \
-	&& tar -czvf /build/unrar-"${UNRAR_VERSION}".tar.gz unrar \
-	&& chown 1000:1000 /build/unrar-"${UNRAR_VERSION}".tar.gz
+	&& tar -czvf /build/unrar-"${UNRAR_RELEASE}".tar.gz unrar \
+	&& chown 1000:1000 /build/unrar-"${UNRAR_RELEASE}".tar.gz
 
 # copy files out to /mnt
 CMD ["cp", "-avr", "/build", "/mnt/"]
