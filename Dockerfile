@@ -8,8 +8,7 @@ RUN \
 	set -ex \
 	&& apk add --no-cache \
 		bash \
-		curl \
-		grep
+		curl
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
