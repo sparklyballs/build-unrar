@@ -77,7 +77,7 @@ RUN \
 	&& mkdir -p \
 		/build \
 	&& tar -czvf /build/unrar-"${UNRAR_RELEASE}".tar.gz unrar \
-	&& chown 1000:1000 /build/unrar-"${UNRAR_RELEASE}".tar.gz
+	&& chown -R 1000:1000 /build
 
 # copy files out to /mnt
 CMD ["cp", "-avr", "/build", "/mnt/"]
