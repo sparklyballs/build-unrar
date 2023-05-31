@@ -1,6 +1,9 @@
 ARG ALPINE_VERSION="3.18"
 FROM alpine:$ALPINE_VERSION as fetch-stage
 
+# build arguments
+ARG RELEASE
+
 ############## fetch stage ##############
 
 # install fetch packages
@@ -8,30 +11,26 @@ RUN \
 	set -ex \
 	&& apk add --no-cache \
 		bash \
-		curl
+		curl \
+		grep
 
+# set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# fetch version file
+# fetch source
 RUN \
-	set -ex \
-	&& curl -o \
-	/tmp/version.txt -L \
-	"https://raw.githubusercontent.com/sparklyballs/versioning/master/version.txt"
-
-# fetch source code
-# hadolint ignore=SC1091
-RUN \
-	. /tmp/version.txt \
-	&& set -ex \
+	if [ -z ${RELEASE+x} ]; then \
+	RELEASE=$(curl -sX GET https://www.rarlab.com/rar_add.htm | grep -Po '(?<=rar/unrarsrc-).*(?=.tar)'); \
+	fi \
 	&& mkdir -p \
-		/tmp/unrar-src \
+		/src/unrar \
 	&& curl -o \
 	/tmp/unrar.tar.gz -L \
-	"https://www.rarlab.com/rar/unrarsrc-${UNRAR_RELEASE}.tar.gz" \
+	"https://www.rarlab.com/rar/unrarsrc-${RELEASE}.tar.gz" \
 	&& tar xf \
 	/tmp/unrar.tar.gz -C \
-	/tmp/unrar-src --strip-components=1
+	/src/unrar --strip-components=1
+
 
 FROM alpine:$ALPINE_VERSION as build-stage
 
@@ -45,10 +44,10 @@ RUN \
 		make
 
 # copy artifacts from fetch stage
-COPY --from=fetch-stage /tmp/unrar-src /tmp/unrar-src
+COPY --from=fetch-stage /src/unrar /src/unrar
 
 # set workdir 
-WORKDIR /tmp/unrar-src
+WORKDIR /src/unrar
 
 # build package
 RUN \
@@ -62,21 +61,36 @@ FROM alpine:$ALPINE_VERSION
 
 ############## package stage ##############
 
+# build arguments
+ARG RELEASE
+
 # copy fetch and build artifacts
-COPY --from=build-stage /tmp/unrar-src /tmp/unrar-src
-COPY --from=fetch-stage /tmp/version.txt /tmp/version.txt
+COPY --from=build-stage /src/unrar /src/unrar
 
 # set workdir
-WORKDIR /tmp/unrar-src
+WORKDIR /src/unrar
+
+# install packages
+RUN \
+	set -ex \
+	&& apk add --no-cache \
+		bash \
+		curl \
+		grep
+
+# set shell
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # archive package
 # hadolint ignore=SC1091
 RUN \
-	. /tmp/version.txt \
+	if [ -z ${RELEASE+x} ]; then \
+	RELEASE=$(curl -sX GET https://www.rarlab.com/rar_add.htm | grep -Po '(?<=rar/unrarsrc-).*(?=.tar)'); \
+	fi \
 	&& set -ex \
 	&& mkdir -p \
 		/build \
-	&& tar -czvf /build/unrar-"${UNRAR_RELEASE}".tar.gz unrar \
+	&& tar -czvf /build/unrar-"${RELEASE}".tar.gz unrar \
 	&& chown -R 1000:1000 /build
 
 # copy files out to /mnt
