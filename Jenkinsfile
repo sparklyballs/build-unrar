@@ -25,6 +25,7 @@ script{
 	env.RELEASE_VER = sh(script: 'curl -sX GET "https://www.rarlab.com/rar_add.htm" | grep -Po "(?<=rar/unrarsrc-).*(?=.tar)"', returnStdout: true).trim() 
 	}
 	}
+	}
 
 stage('Checkout Repository') {
 steps {
